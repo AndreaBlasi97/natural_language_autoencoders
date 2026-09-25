@@ -89,6 +89,7 @@ ${PYTHON:-python} train.py \
     --rollout-function-path miles.rollout.sglang_rollout.generate_rollout \
     --custom-generate-function-path nla.rollout.nla_generate.generate \
     --custom-rm-path nla.reward.nla_rm \
+    --custom-reward-post-process-path nla.reward.nla_reward_post_process \
     --data-source-path nla.data_source.NLADataSource \
     --prompt-data "$RL_PARQUET" \
     --input-key prompt \
@@ -120,9 +121,11 @@ ${PYTHON:-python} train.py \
     --router-policy round_robin \
     --router-disable-circuit-breaker \
     --router-retry-max-backoff-ms 500 --router-retry-max-retries 2 \
-    --rollout-batch-size 128 \
-    --global-batch-size 1024 \
+    --rollout-batch-size 16 \
+    --global-batch-size 128 \
     --micro-batch-size "${ACTOR_MICRO:-4}" \
+    --sglang-disable-piecewise-cuda-graph \
+    --sglang-mem-fraction-static 0.7 \
     --lr "${ACTOR_LR:-1.41e-5}" --lr-decay-style constant \
     "${KL_FLAGS[@]}" \
     --save-interval "${SAVE_INTERVAL:-100}" \

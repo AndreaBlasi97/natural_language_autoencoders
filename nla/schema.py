@@ -222,6 +222,15 @@ def compute_canonical_neighbors(
         tokenize=True,
         add_generation_prompt=True,
     )
+    # transformers 5.x returns BatchEncoding here; 4.x returned list[int].
+    if hasattr(ids, "input_ids"):
+        ids = ids.input_ids
+    elif isinstance(ids, dict):
+        ids = ids["input_ids"]
+    if hasattr(ids, "tolist"):
+        ids = ids.tolist()
+    if ids and isinstance(ids[0], list):
+        ids = ids[0]
     matches = [i for i, tid in enumerate(ids) if tid == injection_token_id]
     assert len(matches) == 1, (
         f"injection token id {injection_token_id} ({injection_char!r}) appears "

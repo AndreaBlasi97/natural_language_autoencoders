@@ -1,0 +1,13 @@
+diff --git a/miles/backends/fsdp_utils/actor.py b/miles/backends/fsdp_utils/actor.py
+index 3498392..a7a7cab 100644
+--- a/miles/backends/fsdp_utils/actor.py
++++ b/miles/backends/fsdp_utils/actor.py
+@@ -514,7 +514,7 @@ class FSDPTrainRayActor(TrainRayActor):
+                     rollout_id=rollout_id,
+                     step_id=step_id,
+                     num_steps_per_rollout=num_steps_per_rollout,
+-                    role="actor",
++                    role=self.role,
+                     extra_metrics=extra_metrics,
+                 )
+ 
