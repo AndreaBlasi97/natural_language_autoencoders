@@ -36,6 +36,16 @@ MBRIDGE_COMMIT=89eb10887887bc74853f89a4de258c0702932a1c
 MEGATRON_BRIDGE_COMMIT=35b4ebfc486fb15dcc0273ceea804c3606be948a
 TORCH_MEMORY_SAVER_COMMIT=dc6876905830430b5054325fa4211ff302169c6b
 
+# conda's gcc bakes the env prefix into its specs file, where '#' starts a comment:
+# nvcc then dies with "braced spec body ... is invalid" (e.g. UCloud's
+# /work/Name#1234 home drive). Build through a symlink with a plain path instead.
+case "$ENV_PREFIX$BASE_DIR" in
+  *[#\ ]*)
+    echo "ERROR: env/sources path contains '#' or a space: $ENV_PREFIX"
+    echo "  ln -sfn \"$NLA_ROOT\" /tmp/nla && cd /tmp/nla/$(basename "$REPO_DIR") && bash env/build_env.sh"
+    exit 1 ;;
+esac
+
 echo "NLA_ROOT=$NLA_ROOT"
 echo "env      -> $ENV_PREFIX"
 echo "sources  -> $BASE_DIR"
