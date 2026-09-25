@@ -1,0 +1,41 @@
+diff --git a/python/sglang/srt/entrypoints/http_server.py b/python/sglang/srt/entrypoints/http_server.py
+index 6978e0c062..c84e31c0dd 100644
+--- a/python/sglang/srt/entrypoints/http_server.py
++++ b/python/sglang/srt/entrypoints/http_server.py
+@@ -19,6 +19,7 @@ This file implements HTTP APIs for the inference engine via fastapi.
+ 
+ import asyncio
+ import dataclasses
++import orjson
+ import logging
+ import os
+ import tempfile
+@@ -654,13 +655,27 @@ if os.environ.get("DUMPER_SERVER_PORT") == "reuse":
+ 
+ 
+ # fastapi implicitly converts json in the request to obj (dataclass)
++_GEN_REQ_FIELDS = {f.name for f in dataclasses.fields(GenerateReqInput)}
++
++
+ @app.api_route(
+     "/generate",
+     methods=["POST", "PUT"],
+     response_class=SGLangORJSONResponse,
+ )
+-async def generate_request(obj: GenerateReqInput, request: Request):
++async def generate_request(request: Request):
+     """Handle a generate request."""
++    data = orjson.loads(await request.body())
++    # === NLA: bf16-base64 input_embeds decode ===
++    if "input_embeds_b64_bf16" in data:
++        import base64, numpy as np, torch
++        raw = base64.b64decode(data.pop("input_embeds_b64_bf16"))
++        shape = data.pop("input_embeds_shape")
++        i16 = np.frombuffer(raw, dtype=np.int16).reshape(shape).copy()
++        data["input_embeds"] = (
++            torch.from_numpy(i16).view(torch.bfloat16).float().tolist()
++        )
++    obj = GenerateReqInput(**{k: v for k, v in data.items() if k in _GEN_REQ_FIELDS})
+     if obj.stream:
+ 
+         async def stream_results() -> AsyncIterator[bytes]:
