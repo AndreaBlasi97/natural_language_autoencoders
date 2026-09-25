@@ -1,1 +1,1 @@
-/work/training/NLAandrea/nla-inference/miles_build_v2/miles/train.py
+../miles_build_v2/miles/train.py
