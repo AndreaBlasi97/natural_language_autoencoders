@@ -70,6 +70,15 @@ if [ ! -x "$ENV_PREFIX/bin/nvcc" ]; then
     -c nvidia/label/cuda-12.9.1 -c conda-forge --channel-priority flexible -y
   micromamba install -p "$ENV_PREFIX" cudnn -c conda-forge --channel-priority flexible -y
 fi
+# micromamba resolves symlinks, so building via /tmp/nla still bakes the real
+# ('#'-containing) prefix into gcc's specs file -- the only file affected.
+# Point it back at the symlinked path (which must exist whenever gcc runs).
+REAL_PREFIX=$(realpath "$ENV_PREFIX")
+if [ "$REAL_PREFIX" != "$ENV_PREFIX" ]; then
+  for f in "$ENV_PREFIX"/lib/gcc/*/*/specs; do
+    [ -f "$f" ] && sed -i "s|$REAL_PREFIX|$ENV_PREFIX|g" "$f" && echo "fixed gcc specs: $f"
+  done
+fi
 set +u; micromamba activate "$ENV_PREFIX"; set -u
 export CUDA_HOME="$CONDA_PREFIX"
 export LIBRARY_PATH=$CONDA_PREFIX/lib/stubs:${LIBRARY_PATH:-}
