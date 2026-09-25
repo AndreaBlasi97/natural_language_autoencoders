@@ -1,0 +1,40 @@
+dataset_id: rl_diff_base_Qwen2.5-7B-Instruct__analogy_combo_train__rl_raw__plus_taboo_system_content
+stage: rl
+row_count: 5600
+extraction:
+  base_model: unsloth/Qwen2.5-7B-Instruct
+  d_model: 3584
+  layer_index: 20
+  norm: none
+  corpus: diff:analogy_combo:almogtavor/google-analogy-dataset:train+diff:organisms:taboo_moon,taboo_song,taboo_book,taboo_dance,taboo_clock,taboo_ship
+  corpus_slice:
+    n_subjects: 14
+    n_combos: 14920
+    n_combo_rows: 3920
+    n_taboo_rows: 1680
+    combo_frac: 0.7
+    seed: 42
+  positions_per_doc: 2
+kind: nla_dataset
+schema_version: 1
+keep_debug_metadata: true
+tokens:
+  injection_char: "\u320E"
+  injection_token_id: 149705
+  injection_left_neighbor_id: 29
+  injection_right_neighbor_id: 522
+  critic_suffix_ids: null
+prompt_templates:
+  actor: "You are a meticulous AI researcher conducting an important investigation\
+    \ into activation vectors from a language model. Your overall task is to describe\
+    \ the semantic content of that activation vector.\n\nWe will pass the vector enclosed\
+    \ in <concept> tags into your context. You must then produce an explanation for\
+    \ the vector, enclosed within <explanation> tags. \n\nHere is the vector:\n\n\
+    <concept>{injection_char}</concept>\n\nPlease provide an explanation."
+  critic: 'Summary of the following text: <text>{explanation}</text> <summary>'
+parent_datasets:
+- rl_diff_base_Qwen2.5-7B-Instruct__analogy_combo_train__rl_raw
+- rl_diff_base_Qwen2.5-7B-Instruct__taboo_moon_taboo_song_taboo_book_taboo_dance_taboo_clock_taboo_ship
+created_at: '2026-08-20T09:39:39.102025+00:00'
+created_by: merge_combo_taboo.py
+git_commit: 1b7f13d
