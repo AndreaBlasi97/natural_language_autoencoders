@@ -9,7 +9,9 @@ _NLA_REPO=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 export NLA_DIR=$_NLA_REPO
 export NLA_ROOT=${NLA_ROOT:-$(dirname "$_NLA_REPO")}
 export BASE_DIR=${BASE_DIR:-$NLA_ROOT/miles_build_v2}
-export MAMBA_ROOT_PREFIX=${MAMBA_ROOT_PREFIX:-$NLA_ROOT/microtools/root}
+# Not ${MAMBA_ROOT_PREFIX:-...}: the micromamba installer sets that to ~/micromamba in
+# ~/.bashrc, and $HOME is wiped between jobs. Override with NLA_MAMBA_ROOT.
+export MAMBA_ROOT_PREFIX=${NLA_MAMBA_ROOT:-$NLA_ROOT/microtools/root}
 
 # --- micromamba (the binary lives in $HOME, so it is lost on job restarts) ---
 export PATH=~/.local/bin:$PATH

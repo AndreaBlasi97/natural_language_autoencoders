@@ -21,7 +21,9 @@ REPO_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 ENV_DIR=$REPO_DIR/env
 export NLA_ROOT=${NLA_ROOT:-$(dirname "$REPO_DIR")}
 export BASE_DIR=${BASE_DIR:-$NLA_ROOT/miles_build_v2}
-export MAMBA_ROOT_PREFIX=${MAMBA_ROOT_PREFIX:-$NLA_ROOT/microtools/root}
+# Not ${MAMBA_ROOT_PREFIX:-...}: the micromamba installer sets that to ~/micromamba in
+# ~/.bashrc, and $HOME is wiped between jobs. Override with NLA_MAMBA_ROOT.
+export MAMBA_ROOT_PREFIX=${NLA_MAMBA_ROOT:-$NLA_ROOT/microtools/root}
 ENV_PREFIX=$MAMBA_ROOT_PREFIX/envs/miles
 export MAX_JOBS=${MAX_JOBS:-32}
 
@@ -47,10 +49,16 @@ fi
 eval "$(micromamba shell hook --shell bash)"
 
 # --- 2. conda env: python + CUDA 12.9 toolkit (needed to compile the extensions) ---
+# --channel-priority flexible: with strict priority the nvidia label channel can't
+# resolve cuda-cudart_linux-64 etc. (same fix as miles/build_conda.sh).
+# Guard on nvcc, not python, so a half-finished env from a failed run gets completed.
 if [ ! -x "$ENV_PREFIX/bin/python" ]; then
   micromamba create -p "$ENV_PREFIX" python=3.12 pip -c conda-forge -y
-  micromamba install -p "$ENV_PREFIX" cuda cuda-nvtx cuda-nvtx-dev nccl -c nvidia/label/cuda-12.9.1 -y
-  micromamba install -p "$ENV_PREFIX" cudnn -c conda-forge -y
+fi
+if [ ! -x "$ENV_PREFIX/bin/nvcc" ]; then
+  micromamba install -p "$ENV_PREFIX" cuda=12.9.1 cuda-nvtx cuda-nvtx-dev nccl \
+    -c nvidia/label/cuda-12.9.1 -c conda-forge --channel-priority flexible -y
+  micromamba install -p "$ENV_PREFIX" cudnn -c conda-forge --channel-priority flexible -y
 fi
 set +u; micromamba activate "$ENV_PREFIX"; set -u
 export CUDA_HOME="$CONDA_PREFIX"
